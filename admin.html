@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Panel - Payments</title>
+    <style>
+        body { background: #000; color: #fff; font-family: sans-serif; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #333; padding: 12px; text-align: left; }
+        .btn-approve { background: #28a745; color: white; border: none; padding: 5px 10px; cursor: pointer; }
+        .btn-decline { background: #dc3545; color: white; border: none; padding: 5px 10px; cursor: pointer; }
+        .status-approved { color: #28a745; font-weight: bold; }
+        .status-declined { color: #dc3545; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h2>Payment Management</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Txn ID</th>
+                <th>Amount</th>
+                <th>Service</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+            </tbody>
+    </table>
+
+    <script>
+        // Replace with your Google Apps Script Web App URL
+        const SHEET_API = "YOUR_GOOGLE_SCRIPT_URL";
+
+        async function loadPayments() {
+            const res = await fetch(SHEET_API);
+            const data = await res.json();
+            const body = document.getElementById('table-body');
+            body.innerHTML = data.map(row => `
+                <tr>
+                    <td>${row.txn}</td>
+                    <td>₹${row.amount}</td>
+                    <td>${row.service}</td>
+                    <td class="status-${row.status.toLowerCase()}">${row.status}</td>
+                    <td>
+                        <button class="btn-approve" onclick="updateStatus('${row.txn}', 'Approved')">Approve</button>
+                        <button class="btn-decline" onclick="updateStatus('${row.txn}', 'Declined')">Decline</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function updateStatus(txn, status) {
+            await fetch(SHEET_API, {
+                method: 'POST',
+                body: JSON.stringify({ txn, status })
+            });
+            loadPayments();
+        }
+
+        loadPayments();
+    </script>
+</body>
+</html>
